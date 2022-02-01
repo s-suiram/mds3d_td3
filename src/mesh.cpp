@@ -70,15 +70,20 @@ void Mesh::draw(const Shader &shd) {
   // 3 - activate this stream of vertex attribute
   glEnableVertexAttribArray(vertex_loc);
   
+  int color_loc = shd.getAttribLocation("vtx_color");
+  glVertexAttribPointer(color_loc, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) (2 * sizeof(Vector3f)));
+  glEnableVertexAttribArray(color_loc);
+  
   int normal_loc = shd.getAttribLocation("vtx_normal");
   if (normal_loc >= 0) {
     glVertexAttribPointer(normal_loc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *) sizeof(Vector3f));
     glEnableVertexAttribArray(normal_loc);
   }
   
-  glDrawElements(GL_TRIANGLES, 3*mFaces.size(), GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, 3 * mFaces.size(), GL_UNSIGNED_INT, 0);
   
   glDisableVertexAttribArray(vertex_loc);
+  if (color_loc >= 0) glDisableVertexAttribArray(color_loc);
   if (normal_loc >= 0) glDisableVertexAttribArray(normal_loc);
   
   checkError();

@@ -5,7 +5,7 @@
 
 Viewer *v;
 
-int WIDTH = 640;
+int WIDTH = 1280;
 int HEIGHT = 480;
 
 int g_pixel_ratio = 1;
@@ -95,7 +95,7 @@ int main(int /*argc*/, char **/*argv*/) {
   while (!glfwWindowShouldClose(window)) {
     // render the scene
     t1 = glfwGetTime();
-    if (t1 - t0 > 1) {
+    if (t1 - t0 > 0.03) {
       v->updateAndDrawScene();
       glfwSwapBuffers(window);
       t0 = t1;

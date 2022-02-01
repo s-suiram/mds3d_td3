@@ -4,7 +4,7 @@
 using namespace Eigen;
 
 Viewer::Viewer()
-    : _winWidth(0), _winHeight(0) {
+    : _winWidth(0), _winHeight(0), zoom(1), translation(0, 0), wireframe(false) {
 }
 
 Viewer::~Viewer() {
@@ -17,7 +17,7 @@ Viewer::~Viewer() {
 void Viewer::init(int w, int h) {
   loadShaders();
   
-  if (!_mesh.load(DATA_DIR"/models/test.off")) exit(1);
+  if (!_mesh.load(DATA_DIR"/models/lemming.off")) exit(1);
   _mesh.initVBA();
   
   reshape(w, h);
@@ -28,15 +28,50 @@ void Viewer::reshape(int w, int h) {
   _winWidth = w;
   _winHeight = h;
   _cam.setViewport(w, h);
-  gl::glViewport(0, 0, w, h);
 }
 
 /*!
    callback to draw graphic primitives
  */
 void Viewer::drawScene() {
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);
+  glEnable(GL_LINE_SMOOTH);
+  glClearColor(0.1, 0.1, 0.1, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  
   _shader.activate();
+  
+  glViewport(0, 0, _winWidth / 2, _winHeight);
+  
+  glUniform1f(_shader.getUniformLocation("zoom"), zoom);
+  glUniform2f(_shader.getUniformLocation("translation"), translation.x(), translation.y());
+  
+  glUniform1i(_shader.getUniformLocation("sideView"), 0);
+  glUniform1i(_shader.getUniformLocation("white"), 0);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   _mesh.draw(_shader);
+  
+  if (wireframe) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glUniform1i(_shader.getUniformLocation("white"), 1);
+    _mesh.draw(_shader);
+  }
+  
+  // Side view
+  glViewport(_winWidth / 2, 0, _winWidth / 2, _winHeight);
+  glUniform1i(_shader.getUniformLocation("sideView"), 1);
+  
+  glUniform1i(_shader.getUniformLocation("white"), 0);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  _mesh.draw(_shader);
+  
+  if (wireframe) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glUniform1i(_shader.getUniformLocation("white"), 1);
+    _mesh.draw(_shader);
+  }
+  
   _shader.deactivate();
 }
 
@@ -65,11 +100,20 @@ void Viewer::keyPressed(int key, int action, int /*mods*/) {
   
   if (action == GLFW_PRESS || action == GLFW_REPEAT) {
     if (key == GLFW_KEY_UP) {
+      translation.y() += 0.05;
     } else if (key == GLFW_KEY_DOWN) {
+      translation.y() -= 0.05;
     } else if (key == GLFW_KEY_LEFT) {
+      translation.x() -= 0.05;
     } else if (key == GLFW_KEY_RIGHT) {
+      translation.x() += 0.05;
     } else if (key == GLFW_KEY_PAGE_UP) {
+      zoom += 0.1;
     } else if (key == GLFW_KEY_PAGE_DOWN) {
+      zoom -= 0.1;
+      zoom = std::max(0.f, zoom);
+    } else if (key == GLFW_KEY_SPACE) {
+      wireframe = !wireframe;
     }
   }
 }

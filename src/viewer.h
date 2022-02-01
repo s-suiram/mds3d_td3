@@ -34,6 +34,9 @@ private:
   Camera _cam;
   Shader _shader;
   Mesh _mesh;
+  float zoom;
+  Eigen::Vector2f translation;
+  bool wireframe;
   
   // Mouse parameters for the trackball
   enum TrackMode {
